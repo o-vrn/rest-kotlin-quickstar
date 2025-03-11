@@ -3,13 +3,11 @@ package com.ovrn.rkq.resource
 import com.ovrn.rkq.model.RandomFactDto
 import com.ovrn.rkq.restclient.UselessFactClient
 import com.ovrn.rkq.util.GET_FACT_METRIC_NAME
-import com.ovrn.rkq.util.TAG_NAME
 import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.every
 import io.quarkiverse.test.junit.mockk.InjectMock
 import io.quarkus.cache.Cache
 import io.quarkus.cache.CacheName
-import io.quarkus.cache.CaffeineCache
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured.given
 import io.smallrye.mutiny.Uni
