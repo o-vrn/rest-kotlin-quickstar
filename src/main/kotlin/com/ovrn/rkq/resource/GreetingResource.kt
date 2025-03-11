@@ -1,4 +1,4 @@
-package com.ovrn
+package com.ovrn.rkq.resource
 
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path

@@ -1,4 +1,4 @@
-package com.ovrn
+package com.ovrn.rkq.resource
 
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured.given
