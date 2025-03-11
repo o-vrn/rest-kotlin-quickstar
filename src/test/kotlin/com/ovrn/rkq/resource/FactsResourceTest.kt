@@ -32,7 +32,7 @@ class FactsResourceTest {
             id = "1",
             text = "Fact from Quarkus REST",
             source = "test",
-            source_url = "http://example.com",
+            sourceUrl = "http://example.com",
             language = "en",
             permalink = "http://example.com/permalink"
         )
