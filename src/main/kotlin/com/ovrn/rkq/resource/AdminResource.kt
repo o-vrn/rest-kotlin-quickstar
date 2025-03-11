@@ -28,7 +28,9 @@ class AdminResource {
                 .fold(HashMap<String, Double>()) { acc, counter ->
                     counter.id.getTag(TAG_NAME)
                         ?.let {
-                            acc[it] = acc.getOrDefault(it, 0.0) + counter.count()
+                            acc.compute(it) { _, value -> value
+                                ?.let { it + counter.count() } ?: counter.count()
+                            }
                         }
                     acc
                 }

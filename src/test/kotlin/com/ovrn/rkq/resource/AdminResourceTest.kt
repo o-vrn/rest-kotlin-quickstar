@@ -69,7 +69,6 @@ class AdminResourceTest {
                     "original_fact", `is`(it.text)
                 )
         }
-        registry.find(GET_FACT_METRIC_NAME).counter()?.id?.let { registry.remove(it) }
 
         given().`when`().get("/admin/statistics")
             .then()

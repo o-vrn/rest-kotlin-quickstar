@@ -30,9 +30,7 @@ class FactsResource {
             .failWith(Exception("No random fact found"))
             .onItem()
             .invoke(factCache::addFact)
-            .map { randomFactDto ->
-                FactDto(randomFactDto.text, randomFactDto.id)
-            }
+            .map { FactDto(it.text, it.id) }
     }
 
     @GET
@@ -40,24 +38,20 @@ class FactsResource {
     @Produces(MediaType.APPLICATION_JSON)
     fun getFact(@PathParam("shortened_url") id: String): Uni<FactViewDto> {
         return factCache.getFact(id)
-            .map { randomFact ->
-                FactViewDto(randomFact.text, randomFact.permalink)
-            }
+            .map { FactViewDto(it.text, it.permalink) }
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     fun getAll(): Uni<List<FactViewDto>> {
         return factCache.getAll()
-            .map { list -> list.map { fact -> FactViewDto(fact.text, fact.permalink) } }
+            .map { list -> list.map { FactViewDto(it.text, it.permalink) } }
     }
 
     @GET
     @Path("/{shortened_url}/redirect")
-    fun getFactOriginalLink(@PathParam("shortened_url") id: String): RestResponse<Any> {
-        val link = factCache.getFact(id)
-            .map { randomFact -> randomFact.permalink }
-            .await().indefinitely()
-        return RestResponse.seeOther(URI.create(link))
+    fun getFactOriginalLink(@PathParam("shortened_url") id: String): Uni<RestResponse<Any>> {
+        return factCache.getFact(id)
+            .map { RestResponse.seeOther(URI.create(it.permalink)) }
     }
 }

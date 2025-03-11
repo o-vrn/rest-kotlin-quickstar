@@ -35,11 +35,9 @@ class FactCache {
     fun getAll(): Uni<List<RandomFactDto>> {
         val uniList = cache.`as`(CaffeineCache::class.java)
             .keySet()
-            .map { key ->
-                cache.getAsync<String, RandomFactDto>(key as String?) { null } as Uni<RandomFactDto>
+            .map { cache.getAsync<String, RandomFactDto>(it as String?) { null } as Uni<RandomFactDto> }
 
-            }
         return Uni.combine().all().unis<List<RandomFactDto>>(uniList)
-            .with { results -> results.filterIsInstance<RandomFactDto>() }
+            .with { it.filterIsInstance<RandomFactDto>() }
     }
 }

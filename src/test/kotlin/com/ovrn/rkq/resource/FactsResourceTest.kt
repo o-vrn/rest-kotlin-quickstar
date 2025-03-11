@@ -15,6 +15,7 @@ import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
 import org.eclipse.microprofile.rest.client.inject.RestClient
 import org.hamcrest.CoreMatchers.`is`
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -48,9 +49,10 @@ class FactsResourceTest {
             language = "en",
             permalink = "http://example.com/permalink"
         )
-        every { uselessFactClient.getRandomFact() } returns Uni.createFrom().item(
-            randomFactDto
-        )
+        val listOf = listOf(randomFactDto)
+
+        every { uselessFactClient.getRandomFact() } returnsMany listOf
+            .map { Uni.createFrom().item(it) }
 
         val factId = randomFactDto.id
         given().`when`().post("/facts")
@@ -64,7 +66,7 @@ class FactsResourceTest {
         cache.`as`(CaffeineCache::class.java)
             .getIfPresent<RandomFactDto>(factId)
             .get()
-            .let { assert(it == randomFactDto) }
+            .let { Assertions.assertEquals(randomFactDto, it) }
     }
 
     @Test
@@ -77,9 +79,10 @@ class FactsResourceTest {
             language = "en",
             permalink = "http://example.com/permalink"
         )
-        every { uselessFactClient.getRandomFact() } returns Uni.createFrom().item(
-            randomFactDto
-        )
+        val listOf = listOf(randomFactDto)
+
+        every { uselessFactClient.getRandomFact() } returnsMany listOf
+            .map { Uni.createFrom().item(it) }
 
         val factId = randomFactDto.id
         given().`when`().post("/facts")
@@ -153,9 +156,10 @@ class FactsResourceTest {
             language = "en",
             permalink = "http://example.com/permalink"
         )
-        every { uselessFactClient.getRandomFact() } returns Uni.createFrom().item(
-            randomFactDto
-        )
+        val listOf = listOf(randomFactDto)
+
+        every { uselessFactClient.getRandomFact() } returnsMany listOf
+            .map { Uni.createFrom().item(it) }
 
         val factId = randomFactDto.id
         given().`when`().post("/facts")
@@ -183,9 +187,10 @@ class FactsResourceTest {
             language = "en",
             permalink = "http://example.com/permalink"
         )
-        every { uselessFactClient.getRandomFact() } returns Uni.createFrom().item(
-            randomFactDto
-        )
+        val listOf = listOf(randomFactDto)
+
+        every { uselessFactClient.getRandomFact() } returnsMany listOf
+            .map { Uni.createFrom().item(it) }
 
         val factId = randomFactDto.id
         given().`when`().post("/facts")
@@ -217,6 +222,6 @@ class FactsResourceTest {
                 "[0].fact", `is`(randomFactDto.text)
             )
 
-        assert(registry.counter(GET_FACT_METRIC_NAME, "id", randomFactDto.id).count() == 2.0)
+        Assertions.assertEquals(2.0, registry.counter(GET_FACT_METRIC_NAME, "id", randomFactDto.id).count())
     }
 }
