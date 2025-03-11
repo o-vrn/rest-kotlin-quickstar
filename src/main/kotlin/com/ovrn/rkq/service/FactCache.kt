@@ -22,7 +22,18 @@ class FactCache {
 
     fun getFact(id: String): Uni<RandomFactDto> {
         return cache.getAsync(id) {
-                throw RuntimeException("Fact with ID: $id not found in cache")
+            throw RuntimeException("Fact with ID: $id not found in cache")
+        }
+    }
+
+    fun getAll(): Uni<List<RandomFactDto>> {
+        val uniList = cache.`as`(CaffeineCache::class.java)
+            .keySet()
+                .map { key ->
+                    cache.getAsync<String, RandomFactDto>(key as String?) { null } as Uni<RandomFactDto>
+
             }
+        return Uni.combine().all().unis<List<RandomFactDto>>(uniList)
+            .with { results -> results.filterIsInstance<RandomFactDto>() }
     }
 }

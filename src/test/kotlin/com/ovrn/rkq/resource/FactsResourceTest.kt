@@ -86,4 +86,48 @@ class FactsResourceTest {
                 "original_permalink", `is`(randomFactDto.permalink)
             )
     }
+
+    @Test
+    fun testGetAllCachedFactsEndpoint() {
+        val randomFactDto1 = RandomFactDto(
+            id = "1",
+            text = "Fact from Quarkus REST",
+            source = "test",
+            sourceUrl = "http://example.com",
+            language = "en",
+            permalink = "http://example.com/permalink"
+        )
+        val randomFactDto2 = RandomFactDto(
+            id = "2",
+            text = "Another fact from Quarkus REST",
+            source = "test",
+            sourceUrl = "http://example.com/2",
+            language = "en",
+            permalink = "http://example.com/permalink/2"
+        )
+        val listOf = listOf(randomFactDto1, randomFactDto2)
+
+        every { uselessFactClient.getRandomFact() } returnsMany listOf
+            .map { Uni.createFrom().item(it) }
+
+        listOf.forEach {
+            given().`when`().post("/facts")
+                .then()
+                .statusCode(200)
+                .body(
+                    "shortened_url", `is`(it.id),
+                    "original_fact", `is`(it.text)
+                )
+        }
+
+        given().`when`().get("/facts")
+            .then()
+            .statusCode(200)
+            .body(
+                "size()", `is`(2),
+                "[0].fact", `is`(randomFactDto1.text),
+                "[1].fact", `is`(randomFactDto2.text)
+            )
+
+    }
 }

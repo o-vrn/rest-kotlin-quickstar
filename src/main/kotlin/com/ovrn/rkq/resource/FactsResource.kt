@@ -40,10 +40,17 @@ class FactsResource {
     @GET
     @Path("/{shortened_url}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getRandomFact(@PathParam("shortened_url") id: String): Uni<FactViewDto> {
+    fun getFact(@PathParam("shortened_url") id: String): Uni<FactViewDto> {
         return factCache.getFact(id)
             .map { randomFact ->
                 FactViewDto(randomFact.text, randomFact.permalink)
             }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getAll(): Uni<List<FactViewDto>> {
+        return factCache.getAll()
+            .map { list -> list.map { fact -> FactViewDto(fact.text, fact.permalink) } }
     }
 }
