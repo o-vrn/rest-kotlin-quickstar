@@ -1,12 +1,15 @@
 package com.ovrn.rkq.resource
 
 import com.ovrn.rkq.model.FactDto
+import com.ovrn.rkq.model.FactViewDto
 import com.ovrn.rkq.restclient.UselessFactClient
 import com.ovrn.rkq.service.FactCache
 import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
+import jakarta.ws.rs.GET
 import jakarta.ws.rs.POST
 import jakarta.ws.rs.Path
+import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.rest.client.inject.RestClient
@@ -31,6 +34,16 @@ class FactsResource {
             .invoke(factCache::addFact)
             .map { randomFactDto ->
                 FactDto(randomFactDto.text, randomFactDto.id)
+            }
+    }
+
+    @GET
+    @Path("/{shortened_url}")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getRandomFact(@PathParam("shortened_url") id: String): Uni<FactViewDto> {
+        return factCache.getFact(id)
+            .map { randomFact ->
+                FactViewDto(randomFact.text, randomFact.permalink)
             }
     }
 }

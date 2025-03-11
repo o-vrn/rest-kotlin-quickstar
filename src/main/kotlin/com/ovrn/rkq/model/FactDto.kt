@@ -1,6 +1,10 @@
 package com.ovrn.rkq.model
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 data class FactDto(
-    val original_fact: String,
-    val shortened_url: String
+    @JsonProperty("original_fact")
+    val text: String,
+    @JsonProperty("shortened_url")
+    val id: String
 )

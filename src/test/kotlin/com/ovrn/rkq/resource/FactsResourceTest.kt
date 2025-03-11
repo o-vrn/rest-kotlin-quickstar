@@ -27,7 +27,7 @@ class FactsResourceTest {
     private lateinit var cache: Cache
 
     @Test
-    fun testHelloEndpoint() {
+    fun testGetRandomEndpoint() {
         val randomFactDto = RandomFactDto(
             id = "1",
             text = "Fact from Quarkus REST",
@@ -41,8 +41,7 @@ class FactsResourceTest {
         )
 
         val factId = randomFactDto.id
-        given()
-            .`when`().post("/facts")
+        given().`when`().post("/facts")
             .then()
             .statusCode(200)
             .body(
@@ -56,4 +55,35 @@ class FactsResourceTest {
             .let { assert(it == randomFactDto) }
     }
 
+    @Test
+    fun testGetCachedFactEndpoint() {
+        val randomFactDto = RandomFactDto(
+            id = "1",
+            text = "Fact from Quarkus REST",
+            source = "test",
+            sourceUrl = "http://example.com",
+            language = "en",
+            permalink = "http://example.com/permalink"
+        )
+        every { uselessFactClient.getRandomFact() } returns Uni.createFrom().item(
+            randomFactDto
+        )
+
+        val factId = randomFactDto.id
+        given().`when`().post("/facts")
+        .then()
+            .statusCode(200)
+            .body(
+                "shortened_url", `is`(factId),
+                "original_fact", `is`(randomFactDto.text)
+            )
+
+        given().`when`().get("/facts/${factId}")
+            .then()
+            .statusCode(200)
+            .body(
+                "fact", `is`(randomFactDto.text),
+                "original_permalink", `is`(randomFactDto.permalink)
+            )
+    }
 }
