@@ -2,6 +2,8 @@ package com.ovrn.rkq.resource
 
 import com.ovrn.rkq.model.RandomFactDto
 import com.ovrn.rkq.restclient.UselessFactClient
+import com.ovrn.rkq.service.GET_FACT_METRIC_NAME
+import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.every
 import io.quarkiverse.test.junit.mockk.InjectMock
 import io.quarkus.cache.Cache
@@ -13,6 +15,7 @@ import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
 import org.eclipse.microprofile.rest.client.inject.RestClient
 import org.hamcrest.CoreMatchers.`is`
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 
@@ -25,6 +28,9 @@ class FactsResourceTest {
     @Inject
     @CacheName("fact-cache")
     private lateinit var cache: Cache
+
+    @Inject
+    private lateinit var registry: MeterRegistry
 
     @Test
     fun testGetRandomEndpoint() {
@@ -159,5 +165,55 @@ class FactsResourceTest {
             .then()
             .statusCode(303)
             .header("Location", `is`(randomFactDto.permalink))
+    }
+
+    @Test
+    fun testMetricCountEndpoint() {
+        val randomFactDto = RandomFactDto(
+            id = "1",
+            text = "Fact from Quarkus REST",
+            source = "test",
+            sourceUrl = "http://example.com",
+            language = "en",
+            permalink = "http://example.com/permalink"
+        )
+        every { uselessFactClient.getRandomFact() } returns Uni.createFrom().item(
+            randomFactDto
+        )
+
+        val find = registry.find(GET_FACT_METRIC_NAME)
+        if (find.counter() != null) find.counter()?.id?.let { registry.remove(it) }
+
+        val factId = randomFactDto.id
+        given().`when`().post("/facts")
+            .then()
+            .statusCode(200)
+            .body(
+                "shortened_url", `is`(factId),
+                "original_fact", `is`(randomFactDto.text)
+            )
+
+        given().redirects()
+            .follow(false).`when`().get("/facts/${factId}/redirect")
+            .then()
+            .statusCode(303)
+            .header("Location", `is`(randomFactDto.permalink))
+
+        given().`when`().get("/facts/${factId}")
+            .then()
+            .statusCode(200)
+            .body(
+                "fact", `is`(randomFactDto.text),
+                "original_permalink", `is`(randomFactDto.permalink)
+            )
+        given().`when`().get("/facts")
+            .then()
+            .statusCode(200)
+            .body(
+                "size()", `is`(1),
+                "[0].fact", `is`(randomFactDto.text)
+            )
+
+        assert (registry.counter(GET_FACT_METRIC_NAME, "id", randomFactDto.id).count() == 2.0)
     }
 }
