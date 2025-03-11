@@ -71,7 +71,7 @@ class FactsResourceTest {
 
         val factId = randomFactDto.id
         given().`when`().post("/facts")
-        .then()
+            .then()
             .statusCode(200)
             .body(
                 "shortened_url", `is`(factId),
@@ -129,5 +129,35 @@ class FactsResourceTest {
                 "[1].fact", `is`(randomFactDto2.text)
             )
 
+    }
+
+    @Test
+    fun testFactOriginalLinkEndpoint() {
+        val randomFactDto = RandomFactDto(
+            id = "1",
+            text = "Fact from Quarkus REST",
+            source = "test",
+            sourceUrl = "http://example.com",
+            language = "en",
+            permalink = "http://example.com/permalink"
+        )
+        every { uselessFactClient.getRandomFact() } returns Uni.createFrom().item(
+            randomFactDto
+        )
+
+        val factId = randomFactDto.id
+        given().`when`().post("/facts")
+            .then()
+            .statusCode(200)
+            .body(
+                "shortened_url", `is`(factId),
+                "original_fact", `is`(randomFactDto.text)
+            )
+
+        given().redirects()
+            .follow(false).`when`().get("/facts/${factId}/redirect")
+            .then()
+            .statusCode(303)
+            .header("Location", `is`(randomFactDto.permalink))
     }
 }

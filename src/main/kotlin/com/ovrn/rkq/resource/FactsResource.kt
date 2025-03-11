@@ -6,13 +6,11 @@ import com.ovrn.rkq.restclient.UselessFactClient
 import com.ovrn.rkq.service.FactCache
 import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
-import jakarta.ws.rs.GET
-import jakarta.ws.rs.POST
-import jakarta.ws.rs.Path
-import jakarta.ws.rs.PathParam
-import jakarta.ws.rs.Produces
+import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.rest.client.inject.RestClient
+import org.jboss.resteasy.reactive.RestResponse
+import java.net.URI
 
 
 @Path("/facts")
@@ -52,5 +50,14 @@ class FactsResource {
     fun getAll(): Uni<List<FactViewDto>> {
         return factCache.getAll()
             .map { list -> list.map { fact -> FactViewDto(fact.text, fact.permalink) } }
+    }
+
+    @GET
+    @Path("/{shortened_url}/redirect")
+    fun getFactOriginalLink(@PathParam("shortened_url") id: String): RestResponse<Any> {
+        val link = factCache.getFact(id)
+            .map { randomFact -> randomFact.permalink }
+            .await().indefinitely()
+        return RestResponse.seeOther(URI.create(link))
     }
 }
