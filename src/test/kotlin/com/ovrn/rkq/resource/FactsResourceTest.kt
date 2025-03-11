@@ -2,7 +2,7 @@ package com.ovrn.rkq.resource
 
 import com.ovrn.rkq.model.RandomFactDto
 import com.ovrn.rkq.restclient.UselessFactClient
-import com.ovrn.rkq.service.GET_FACT_METRIC_NAME
+import com.ovrn.rkq.util.GET_FACT_METRIC_NAME
 import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.every
 import io.quarkiverse.test.junit.mockk.InjectMock
@@ -15,7 +15,7 @@ import io.smallrye.mutiny.Uni
 import jakarta.inject.Inject
 import org.eclipse.microprofile.rest.client.inject.RestClient
 import org.hamcrest.CoreMatchers.`is`
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 
@@ -31,6 +31,12 @@ class FactsResourceTest {
 
     @Inject
     private lateinit var registry: MeterRegistry
+
+    @BeforeEach
+    fun preTest() {
+        cache.invalidateAll().await().indefinitely()
+        registry.find(GET_FACT_METRIC_NAME).counters().forEach(registry::remove)
+    }
 
     @Test
     fun testGetRandomEndpoint() {
@@ -181,9 +187,6 @@ class FactsResourceTest {
             randomFactDto
         )
 
-        val find = registry.find(GET_FACT_METRIC_NAME)
-        if (find.counter() != null) find.counter()?.id?.let { registry.remove(it) }
-
         val factId = randomFactDto.id
         given().`when`().post("/facts")
             .then()
@@ -214,6 +217,6 @@ class FactsResourceTest {
                 "[0].fact", `is`(randomFactDto.text)
             )
 
-        assert (registry.counter(GET_FACT_METRIC_NAME, "id", randomFactDto.id).count() == 2.0)
+        assert(registry.counter(GET_FACT_METRIC_NAME, "id", randomFactDto.id).count() == 2.0)
     }
 }

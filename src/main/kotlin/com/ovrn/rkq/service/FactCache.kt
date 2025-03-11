@@ -1,6 +1,7 @@
 package com.ovrn.rkq.service
 
 import com.ovrn.rkq.model.RandomFactDto
+import com.ovrn.rkq.util.GET_FACT_METRIC_NAME
 import io.micrometer.core.instrument.MeterRegistry
 import io.quarkus.cache.Cache
 import io.quarkus.cache.CacheName
@@ -10,8 +11,6 @@ import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import java.util.concurrent.CompletableFuture
 
-
-const val GET_FACT_METRIC_NAME = "fact-cache.get-fact.count"
 
 @ApplicationScoped
 class FactCache {
