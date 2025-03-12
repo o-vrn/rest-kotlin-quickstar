@@ -3,10 +3,10 @@ package com.ovrn.rkq.resource
 import com.ovrn.rkq.model.FactStatisticDto
 import com.ovrn.rkq.util.GET_FACT_METRIC_NAME
 import com.ovrn.rkq.util.TAG_NAME
+import com.ovrn.rkq.util.WebException
 import io.micrometer.core.instrument.MeterRegistry
 import io.smallrye.mutiny.Uni
 import jakarta.ws.rs.GET
-import jakarta.ws.rs.InternalServerErrorException
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
@@ -34,7 +34,7 @@ class AdminResource(private val registry: MeterRegistry) {
                 }
                 .map { FactStatisticDto(it.value, it.key) }
         ).onFailure()
-            .transform { InternalServerErrorException("Can't retrieve statistics", it) }
+            .transform { WebException.internal("Can't retrieve statistics", it) }
     }
 
 }

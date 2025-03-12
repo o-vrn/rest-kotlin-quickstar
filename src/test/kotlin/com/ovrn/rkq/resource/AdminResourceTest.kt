@@ -92,6 +92,7 @@ class AdminResourceTest {
         given().`when`().get("/facts/${missingFactId}")
             .then()
             .statusCode(400)
+            .body("message", `is`("Fact with ID: 3 not found in cache"))
 
         given().`when`().get("/facts")
             .then()

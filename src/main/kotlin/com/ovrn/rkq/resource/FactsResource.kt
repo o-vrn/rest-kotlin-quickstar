@@ -5,6 +5,7 @@ import com.ovrn.rkq.model.FactViewDto
 import com.ovrn.rkq.model.RandomFactDto
 import com.ovrn.rkq.restclient.UselessFactClient
 import com.ovrn.rkq.service.FactCache
+import com.ovrn.rkq.util.WebException
 import io.quarkus.logging.Log
 import io.smallrye.mutiny.Uni
 import jakarta.ws.rs.*
@@ -25,14 +26,14 @@ class FactsResource(@RestClient private val uselessFactClient: UselessFactClient
                 .recoverWithUni { throwable ->
                     val message = "Failed to retrieve response from Useless Fact Client"
                     Log.error(message, throwable)
-                    Uni.createFrom().failure(InternalServerErrorException(message, throwable))
+                    Uni.createFrom().failure( WebException.internal(message, throwable))
                 }
             .onItem()
                 .ifNull()
                 .failWith {
                     val message = "Useless Fact Client returned an empty response"
                     Log.warn(message)
-                    InternalServerErrorException(message)
+                    WebException.internal(message)
                 }
             .onItem()
                 .ifNotNull()
@@ -61,5 +62,5 @@ class FactsResource(@RestClient private val uselessFactClient: UselessFactClient
 
     private fun getCachedFact(id: String): Uni<RandomFactDto> = factCache.getFact(id)
         .onFailure()
-            .recoverWithUni { throwable -> Uni.createFrom().failure(BadRequestException(throwable.message)) }
+            .recoverWithUni { throwable -> Uni.createFrom().failure( WebException.badRequest(throwable.message)) }
 }
