@@ -6,6 +6,7 @@ import com.ovrn.rkq.util.TAG_NAME
 import io.micrometer.core.instrument.MeterRegistry
 import io.smallrye.mutiny.Uni
 import jakarta.ws.rs.GET
+import jakarta.ws.rs.InternalServerErrorException
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
@@ -32,7 +33,8 @@ class AdminResource(private val registry: MeterRegistry) {
                     acc
                 }
                 .map { FactStatisticDto(it.value, it.key) }
-        )
+        ).onFailure()
+            .transform { InternalServerErrorException("Can't retrieve statistics", it) }
     }
 
 }

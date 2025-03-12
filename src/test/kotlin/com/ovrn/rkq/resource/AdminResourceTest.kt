@@ -88,6 +88,11 @@ class AdminResourceTest {
             .then()
             .statusCode(200)
 
+        val missingFactId = "3"
+        given().`when`().get("/facts/${missingFactId}")
+            .then()
+            .statusCode(400)
+
         given().`when`().get("/facts")
             .then()
             .statusCode(200)
@@ -96,11 +101,13 @@ class AdminResourceTest {
             .then()
             .statusCode(200)
             .body(
-                "size()", `is`(2),
+                "size()", `is`(3),
                 "[0].access_count", `is`(2.0F),
                 "[0].shortened_url", `is`(randomFactDto1.id),
                 "[1].access_count", `is`(1.0F),
-                "[1].shortened_url", `is`(randomFactDto2.id)
+                "[1].shortened_url", `is`(randomFactDto2.id),
+                "[2].access_count", `is`(1.0F),
+                "[2].shortened_url", `is`(missingFactId)
             )
     }
 }
