@@ -8,18 +8,15 @@ import io.quarkus.cache.CacheName
 import io.quarkus.cache.CaffeineCache
 import io.smallrye.mutiny.Uni
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.inject.Inject
 import java.util.concurrent.CompletableFuture
 
 
 @ApplicationScoped
-class FactCacheImpl : FactCache {
-    @Inject
-    private lateinit var registry: MeterRegistry
-
-    @Inject
+class FactCacheImpl(
+    private val registry: MeterRegistry,
     @CacheName("fact-cache")
-    private lateinit var cache: Cache
+    private val cache: Cache
+) : FactCache {
 
     override fun addFact(randomFactDto: RandomFactDto) {
         cache.`as`(CaffeineCache::class.java).put(randomFactDto.id, CompletableFuture.completedFuture(randomFactDto))

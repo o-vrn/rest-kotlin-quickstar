@@ -5,7 +5,6 @@ import com.ovrn.rkq.util.GET_FACT_METRIC_NAME
 import com.ovrn.rkq.util.TAG_NAME
 import io.micrometer.core.instrument.MeterRegistry
 import io.smallrye.mutiny.Uni
-import jakarta.inject.Inject
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
@@ -13,9 +12,7 @@ import jakarta.ws.rs.core.MediaType
 
 
 @Path("/admin")
-class AdminResource {
-    @Inject
-    private lateinit var registry: MeterRegistry
+class AdminResource(private val registry: MeterRegistry) {
 
     @GET
     @Path("/statistics")

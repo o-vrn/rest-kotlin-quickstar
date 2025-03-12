@@ -5,7 +5,6 @@ import com.ovrn.rkq.model.FactViewDto
 import com.ovrn.rkq.restclient.UselessFactClient
 import com.ovrn.rkq.service.FactCache
 import io.smallrye.mutiny.Uni
-import jakarta.inject.Inject
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.rest.client.inject.RestClient
@@ -14,12 +13,7 @@ import java.net.URI
 
 
 @Path("/facts")
-class FactsResource {
-    @RestClient
-    private lateinit var extensionsService: UselessFactClient
-
-    @Inject
-    private lateinit var factCache: FactCache
+class FactsResource(@RestClient private val extensionsService: UselessFactClient, private val factCache: FactCache) {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
