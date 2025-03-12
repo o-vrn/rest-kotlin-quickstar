@@ -1,7 +1,9 @@
 package com.ovrn.rkq.service
 
 import com.ovrn.rkq.model.RandomFactDto
-import com.ovrn.rkq.util.GET_FACT_METRIC_NAME
+import com.ovrn.rkq.util.GET_FACT_COUNT_METRIC
+import com.ovrn.rkq.util.ID_TAG
+import com.ovrn.rkq.util.MISSING_TAG
 import io.micrometer.core.instrument.MeterRegistry
 import io.quarkus.cache.Cache
 import io.quarkus.cache.CacheName
@@ -33,13 +35,13 @@ class FactCacheImpl(
     override fun getFact(id: String): Uni<RandomFactDto> {
         return cache.getAsync<String?, RandomFactDto?>(id)
         {
-            registry.counter(GET_FACT_METRIC_NAME, "id", it, "missing", true.toString()).increment()
+            registry.counter(GET_FACT_COUNT_METRIC, ID_TAG, it, MISSING_TAG, true.toString()).increment()
             val message = "Fact with ID: $it not found in cache"
             Log.warn(message)
             throw RuntimeException(message)
         }
             .onItem()
-            .invoke { fact -> registry.counter(GET_FACT_METRIC_NAME, "id", fact.id).increment() }
+            .invoke { fact -> registry.counter(GET_FACT_COUNT_METRIC, ID_TAG, fact.id).increment() }
     }
 
     override fun getAll(): Uni<List<RandomFactDto>> {

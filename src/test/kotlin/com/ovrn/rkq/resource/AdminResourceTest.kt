@@ -3,7 +3,7 @@ package com.ovrn.rkq.resource
 import com.ovrn.rkq.model.RandomFactDto
 import com.ovrn.rkq.restclient.UselessFactClient
 import com.ovrn.rkq.service.FactCache
-import com.ovrn.rkq.util.GET_FACT_METRIC_NAME
+import com.ovrn.rkq.util.GET_FACT_COUNT_METRIC
 import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.every
 import io.quarkiverse.test.junit.mockk.InjectMock
@@ -32,7 +32,7 @@ class AdminResourceTest {
     @BeforeEach
     fun preTest() {
         factCache.clear().await().indefinitely()
-        registry.find(GET_FACT_METRIC_NAME).counters().forEach(registry::remove)
+        registry.find(GET_FACT_COUNT_METRIC).counters().forEach(registry::remove)
     }
 
     @Test
