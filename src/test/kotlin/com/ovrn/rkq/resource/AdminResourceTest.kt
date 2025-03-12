@@ -2,12 +2,11 @@ package com.ovrn.rkq.resource
 
 import com.ovrn.rkq.model.RandomFactDto
 import com.ovrn.rkq.restclient.UselessFactClient
+import com.ovrn.rkq.service.FactCache
 import com.ovrn.rkq.util.GET_FACT_METRIC_NAME
 import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.every
 import io.quarkiverse.test.junit.mockk.InjectMock
-import io.quarkus.cache.Cache
-import io.quarkus.cache.CacheName
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured.given
 import io.smallrye.mutiny.Uni
@@ -28,12 +27,11 @@ class AdminResourceTest {
     private lateinit var registry: MeterRegistry
 
     @Inject
-    @CacheName("fact-cache")
-    private lateinit var cache: Cache
+    private lateinit var factCache: FactCache
 
     @BeforeEach
     fun preTest() {
-        cache.invalidateAll().await().indefinitely()
+        factCache.clear().await().indefinitely()
         registry.find(GET_FACT_METRIC_NAME).counters().forEach(registry::remove)
     }
 

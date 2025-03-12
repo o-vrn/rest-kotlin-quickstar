@@ -2,13 +2,11 @@ package com.ovrn.rkq.resource
 
 import com.ovrn.rkq.model.RandomFactDto
 import com.ovrn.rkq.restclient.UselessFactClient
+import com.ovrn.rkq.service.FactCache
 import com.ovrn.rkq.util.GET_FACT_METRIC_NAME
 import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.every
 import io.quarkiverse.test.junit.mockk.InjectMock
-import io.quarkus.cache.Cache
-import io.quarkus.cache.CacheName
-import io.quarkus.cache.CaffeineCache
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured.given
 import io.smallrye.mutiny.Uni
@@ -27,15 +25,14 @@ class FactsResourceTest {
     private lateinit var uselessFactClient: UselessFactClient
 
     @Inject
-    @CacheName("fact-cache")
-    private lateinit var cache: Cache
+    private lateinit var factCache: FactCache
 
     @Inject
     private lateinit var registry: MeterRegistry
 
     @BeforeEach
     fun preTest() {
-        cache.invalidateAll().await().indefinitely()
+        factCache.clear().await().indefinitely()
         registry.find(GET_FACT_METRIC_NAME).counters().forEach(registry::remove)
     }
 
@@ -63,10 +60,13 @@ class FactsResourceTest {
                 "original_fact", `is`(randomFactDto.text)
             )
 
-        cache.`as`(CaffeineCache::class.java)
-            .getIfPresent<RandomFactDto>(factId)
-            .get()
-            .let { Assertions.assertEquals(randomFactDto, it) }
+        factCache.getFact(factId)
+            .subscribe()
+            .with(
+                { Assertions.assertEquals(randomFactDto, it) },
+                { Assertions.fail("Can't get fact from cache") }
+            )
+
     }
 
     @Test
