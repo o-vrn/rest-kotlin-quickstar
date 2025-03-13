@@ -12,7 +12,7 @@ import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
 
 @QuarkusTest
-class FactsResourceTest {
+class FactsResourceImplTest {
     @InjectMock
     private lateinit var factService: FactService
 

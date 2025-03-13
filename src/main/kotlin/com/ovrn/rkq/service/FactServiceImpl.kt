@@ -5,15 +5,16 @@ import com.ovrn.rkq.restclient.UselessFactClient
 import io.quarkus.logging.Log
 import io.smallrye.mutiny.Uni
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Named
 import org.eclipse.microprofile.rest.client.inject.RestClient
 
 @ApplicationScoped
 class FactServiceImpl(
     @RestClient private val uselessFactClient: UselessFactClient,
-    private val cache: MutableMap<String, Fact>
+    @Named("factCache") private val cache: MutableMap<String, Fact>
 ) : FactService {
 
-    override fun getRandomFact(): Uni<Fact?> {
+    override fun getRandomFact(): Uni<Fact> {
         return uselessFactClient.getRandomFact()
             .onFailure()
             .transform { throwable ->
