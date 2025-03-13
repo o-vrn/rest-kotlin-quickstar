@@ -6,7 +6,9 @@ import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Named
 
 @ApplicationScoped
-class FactAccessStatisticServiceImpl(@Named("factStatisticStore")private val store: MutableMap<String, Int>) : FactAccessStatisticService {
+class FactAccessStatisticServiceImpl(
+    @Named("factStatisticStore") private val store: MutableMap<String, Int>
+) : FactAccessStatisticService {
     override fun increment(factId: String) {
         store.compute(factId) { _, v ->
             when (v) {

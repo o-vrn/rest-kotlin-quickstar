@@ -43,7 +43,7 @@ class FactServiceImplTest {
 
         assertNotNull(result)
         assertEquals(uselessFact.text, result!!.text)
-        assertEquals(uselessFact.id,result.id)
+        assertEquals(uselessFact.id, result.id)
         assertEquals(uselessFact.permalink, result.permalink)
 
         assertEquals(1, cache.size)
@@ -74,7 +74,7 @@ class FactServiceImplTest {
 
         assertNotNull(result)
         assertEquals(uselessFact.text, result!!.text)
-        assertEquals(uselessFact.id,result.id)
+        assertEquals(uselessFact.id, result.id)
         assertEquals(uselessFact.permalink, result.permalink)
 
         assertEquals(1, cache.size)

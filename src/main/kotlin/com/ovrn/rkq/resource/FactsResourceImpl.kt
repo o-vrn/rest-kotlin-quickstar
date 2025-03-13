@@ -35,6 +35,6 @@ class FactsResourceImpl(private val factService: FactService) : FactsResource {
     override fun getFactOriginalLink(id: String): Uni<RestResponse<Any>> {
         return factService.getFact(id)
             .onItem().ifNull().failWith(NotFoundException("No fact found for id $id"))
-            .onItem().transform { RestResponse.seeOther(URI.create(it!!.permalink))  }
+            .onItem().transform { RestResponse.seeOther(URI.create(it!!.permalink)) }
     }
 }
