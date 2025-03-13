@@ -1,6 +1,6 @@
 package com.ovrn.rkq.restclient
 
-import com.ovrn.rkq.model.RandomFactDto
+import com.ovrn.rkq.model.UselessFactDto
 import io.smallrye.mutiny.Uni
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path
@@ -11,5 +11,5 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient
 interface UselessFactClient {
     @GET
     @Path("/random")
-    fun getRandomFact(): Uni<RandomFactDto>
+    fun getRandomFact(): Uni<UselessFactDto?>
 }

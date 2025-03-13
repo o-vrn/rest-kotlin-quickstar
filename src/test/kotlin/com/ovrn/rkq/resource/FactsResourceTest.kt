@@ -1,227 +1,152 @@
 package com.ovrn.rkq.resource
 
-import com.ovrn.rkq.model.RandomFactDto
-import com.ovrn.rkq.restclient.UselessFactClient
-import com.ovrn.rkq.service.FactCache
-import com.ovrn.rkq.util.GET_FACT_COUNT_METRIC
-import io.micrometer.core.instrument.MeterRegistry
+import com.ovrn.rkq.model.Fact
+import com.ovrn.rkq.service.FactService
 import io.mockk.every
 import io.quarkiverse.test.junit.mockk.InjectMock
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured.given
 import io.smallrye.mutiny.Uni
-import jakarta.inject.Inject
-import org.eclipse.microprofile.rest.client.inject.RestClient
 import org.hamcrest.CoreMatchers.`is`
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
-
 
 @QuarkusTest
 class FactsResourceTest {
     @InjectMock
-    @RestClient
-    private lateinit var uselessFactClient: UselessFactClient
-
-    @Inject
-    private lateinit var factCache: FactCache
-
-    @Inject
-    private lateinit var registry: MeterRegistry
-
-    @BeforeEach
-    fun preTest() {
-        factCache.clear().await().indefinitely()
-        registry.find(GET_FACT_COUNT_METRIC).counters().forEach(registry::remove)
-    }
+    private lateinit var factService: FactService
 
     @Test
-    fun testGetRandomEndpoint() {
-        val randomFactDto = RandomFactDto(
+    fun testGetRandomFactEndpoint() {
+        val fact = Fact(
             id = "1",
             text = "Fact from Quarkus REST",
-            source = "test",
-            sourceUrl = "http://example.com",
-            language = "en",
             permalink = "http://example.com/permalink"
         )
-        val listOf = listOf(randomFactDto)
 
-        every { uselessFactClient.getRandomFact() } returnsMany listOf
-            .map { Uni.createFrom().item(it) }
+        every { factService.getRandomFact() } returns fact
+            .let { Uni.createFrom().item(it) }
 
-        val factId = randomFactDto.id
+        val factId = fact.id
         given().`when`().post("/facts")
             .then()
             .statusCode(200)
             .body(
                 "shortened_url", `is`(factId),
-                "original_fact", `is`(randomFactDto.text)
+                "original_fact", `is`(fact.text)
             )
-
-        factCache.getFact(factId)
-            .subscribe()
-            .with(
-                { Assertions.assertEquals(randomFactDto, it) },
-                { Assertions.fail("Can't get fact from cache") }
-            )
-
     }
 
     @Test
-    fun testGetCachedFactEndpoint() {
-        val randomFactDto = RandomFactDto(
-            id = "1",
-            text = "Fact from Quarkus REST",
-            source = "test",
-            sourceUrl = "http://example.com",
-            language = "en",
-            permalink = "http://example.com/permalink"
-        )
-        val listOf = listOf(randomFactDto)
+    fun testGetRandomFactOnErrorEndpoint() {
+        val errorMessage = "Some error"
+        every { factService.getRandomFact() } returns RuntimeException(errorMessage)
+            .let { Uni.createFrom().failure(it) }
 
-        every { uselessFactClient.getRandomFact() } returnsMany listOf
-            .map { Uni.createFrom().item(it) }
-
-        val factId = randomFactDto.id
         given().`when`().post("/facts")
             .then()
-            .statusCode(200)
-            .body(
-                "shortened_url", `is`(factId),
-                "original_fact", `is`(randomFactDto.text)
-            )
+            .statusCode(500)
+            .body("message", `is`(errorMessage))
+    }
 
-        given().`when`().get("/facts/${factId}")
+    @Test
+    fun testGetFactEndpoint() {
+        val fact = Fact(
+            id = "1",
+            text = "Fact from Quarkus REST",
+            permalink = "http://example.com/permalink"
+        )
+        val factId = fact.id
+        every { factService.getFact(factId) } returns fact
+            .let { Uni.createFrom().item(it) }
+
+        given().`when`().get("/facts/$factId")
             .then()
             .statusCode(200)
             .body(
-                "fact", `is`(randomFactDto.text),
-                "original_permalink", `is`(randomFactDto.permalink)
+                "fact", `is`(fact.text),
+                "original_permalink", `is`(fact.permalink)
             )
     }
 
     @Test
-    fun testGetAllCachedFactsEndpoint() {
-        val randomFactDto1 = RandomFactDto(
+    fun testGetFactEmptyEndpoint() {
+        val factId = "1"
+        every { factService.getFact(factId) } answers { Uni.createFrom().nullItem() }
+
+        given().`when`().get("/facts/$factId")
+            .then()
+            .statusCode(404)
+            .body(Matchers.emptyOrNullString())
+    }
+
+    @Test
+    fun testGetAllFactsEndpoint() {
+        val fact1 = Fact(
             id = "1",
             text = "Fact from Quarkus REST",
-            source = "test",
-            sourceUrl = "http://example.com",
-            language = "en",
             permalink = "http://example.com/permalink"
         )
-        val randomFactDto2 = RandomFactDto(
+        val fact2 = Fact(
             id = "2",
             text = "Another fact from Quarkus REST",
-            source = "test",
-            sourceUrl = "http://example.com/2",
-            language = "en",
-            permalink = "http://example.com/permalink/2"
+            permalink = "http://example.com/permalink2"
         )
-        val listOf = listOf(randomFactDto1, randomFactDto2)
+        val facts = listOf(fact1, fact2)
 
-        every { uselessFactClient.getRandomFact() } returnsMany listOf
-            .map { Uni.createFrom().item(it) }
-
-        listOf.forEach {
-            given().`when`().post("/facts")
-                .then()
-                .statusCode(200)
-                .body(
-                    "shortened_url", `is`(it.id),
-                    "original_fact", `is`(it.text)
-                )
-        }
+        every { factService.getAll() } returns facts
+            .let { Uni.createFrom().item(it) }
 
         given().`when`().get("/facts")
             .then()
             .statusCode(200)
             .body(
                 "size()", `is`(2),
-                "[0].fact", `is`(randomFactDto1.text),
-                "[1].fact", `is`(randomFactDto2.text)
+                "[0].original_permalink", `is`(fact1.permalink),
+                "[0].fact", `is`(fact1.text),
+                "[1].original_permalink", `is`(fact2.permalink),
+                "[1].fact", `is`(fact2.text)
             )
-
     }
 
     @Test
-    fun testFactOriginalLinkEndpoint() {
-        val randomFactDto = RandomFactDto(
-            id = "1",
-            text = "Fact from Quarkus REST",
-            source = "test",
-            sourceUrl = "http://example.com",
-            language = "en",
-            permalink = "http://example.com/permalink"
-        )
-        val listOf = listOf(randomFactDto)
+    fun testGetAllFactsEmptyEndpoint() {
+        every { factService.getAll() } returns listOf<Fact>()
+            .let { Uni.createFrom().item(it) }
 
-        every { uselessFactClient.getRandomFact() } returnsMany listOf
-            .map { Uni.createFrom().item(it) }
-
-        val factId = randomFactDto.id
-        given().`when`().post("/facts")
-            .then()
-            .statusCode(200)
-            .body(
-                "shortened_url", `is`(factId),
-                "original_fact", `is`(randomFactDto.text)
-            )
-
-        given().redirects()
-            .follow(false).`when`().get("/facts/${factId}/redirect")
-            .then()
-            .statusCode(303)
-            .header("Location", `is`(randomFactDto.permalink))
-    }
-
-    @Test
-    fun testMetricCountEndpoint() {
-        val randomFactDto = RandomFactDto(
-            id = "1",
-            text = "Fact from Quarkus REST",
-            source = "test",
-            sourceUrl = "http://example.com",
-            language = "en",
-            permalink = "http://example.com/permalink"
-        )
-        val listOf = listOf(randomFactDto)
-
-        every { uselessFactClient.getRandomFact() } returnsMany listOf
-            .map { Uni.createFrom().item(it) }
-
-        val factId = randomFactDto.id
-        given().`when`().post("/facts")
-            .then()
-            .statusCode(200)
-            .body(
-                "shortened_url", `is`(factId),
-                "original_fact", `is`(randomFactDto.text)
-            )
-
-        given().redirects()
-            .follow(false).`when`().get("/facts/${factId}/redirect")
-            .then()
-            .statusCode(303)
-            .header("Location", `is`(randomFactDto.permalink))
-
-        given().`when`().get("/facts/${factId}")
-            .then()
-            .statusCode(200)
-            .body(
-                "fact", `is`(randomFactDto.text),
-                "original_permalink", `is`(randomFactDto.permalink)
-            )
         given().`when`().get("/facts")
             .then()
-            .statusCode(200)
-            .body(
-                "size()", `is`(1),
-                "[0].fact", `is`(randomFactDto.text)
-            )
+            .statusCode(204)
+            .body(Matchers.emptyOrNullString())
+    }
 
-        Assertions.assertEquals(2.0, registry.counter(GET_FACT_COUNT_METRIC, "id", randomFactDto.id).count())
+    @Test
+    fun testFactRedirectionEndpoint() {
+        val fact = Fact(
+            id = "1",
+            text = "Fact from Quarkus REST",
+            permalink = "http://example.com/permalink"
+        )
+
+        val factId = fact.id
+        every { factService.getFact(factId) } returns fact
+            .let { Uni.createFrom().item(it) }
+
+        given().redirects()
+            .follow(false).`when`().get("/facts/$factId/redirect")
+            .then()
+            .statusCode(303)
+            .header("Location", `is`(fact.permalink))
+    }
+
+    @Test
+    fun testGetFactRedirectionEmptyEndpoint() {
+        val factId = "1"
+        every { factService.getFact(factId) } answers { Uni.createFrom().nullItem() }
+
+        given().`when`().get("/facts/$factId/redirect")
+            .then()
+            .statusCode(404)
+            .body(Matchers.emptyOrNullString())
     }
 }

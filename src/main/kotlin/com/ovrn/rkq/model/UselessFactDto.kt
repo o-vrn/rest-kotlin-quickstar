@@ -2,7 +2,7 @@ package com.ovrn.rkq.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class RandomFactDto(
+data class UselessFactDto(
     val id: String,
     val text: String,
     val source: String,
