@@ -8,8 +8,8 @@ class UrlShortenerTest {
     @ParameterizedTest
     @CsvSource(
         value = [
-            "daf2c54fc64779e07467ea7453400849, 0320878482",
-            "98748f512d649ecb20e289c22c11fb45, 1420900746"
+            "daf2c54fc64779e07467ea7453400849, 05b1jf6",
+            "98748f512d649ecb20e289c22c11fb45, nhyu16"
         ]
     )
     fun testCompress(input: String, expected: String) {
