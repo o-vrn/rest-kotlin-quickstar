@@ -9,13 +9,15 @@ import jakarta.inject.Named
 class FactAccessStatisticServiceImpl(
     @Named("factStatisticStore") private val store: MutableMap<String, Int>
 ) : FactAccessStatisticService {
-    override fun increment(factId: String) {
-        store.compute(factId) { _, v ->
-            when (v) {
-                null -> 1
-                else -> v + 1
+    override fun increment(factId: String): Uni<Unit> {
+        return Uni.createFrom().item({
+            store.compute(factId) { _, v ->
+                when (v) {
+                    null -> 1
+                    else -> v + 1
+                }
             }
-        }
+        })
     }
 
     override fun getAllStatistics(): Uni<List<FactStatisticDto>> {

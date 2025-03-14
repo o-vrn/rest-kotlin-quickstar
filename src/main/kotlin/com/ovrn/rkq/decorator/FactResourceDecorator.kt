@@ -21,8 +21,8 @@ open class FactResourceDecorator(
     }
 
     override fun getFact(id: String): Uni<FactViewDto?> {
-        factAccessStatisticService.increment(id)
-        return delegate.getFact(id)
+        return factAccessStatisticService.increment(id)
+            .flatMap { delegate.getFact(id) }
     }
 
     override fun getAll(): Uni<List<FactViewDto>?> {
@@ -30,7 +30,7 @@ open class FactResourceDecorator(
     }
 
     override fun getFactOriginalLink(id: String): Uni<RestResponse<Any>> {
-        factAccessStatisticService.increment(id)
-        return delegate.getFactOriginalLink(id)
+        return factAccessStatisticService.increment(id)
+            .flatMap { delegate.getFactOriginalLink(id) }
     }
 }

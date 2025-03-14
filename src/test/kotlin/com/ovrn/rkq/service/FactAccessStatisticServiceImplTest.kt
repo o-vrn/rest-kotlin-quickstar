@@ -1,5 +1,7 @@
 package com.ovrn.rkq.service
 
+import com.ovrn.rkq.model.FactStatisticDto
+import io.smallrye.mutiny.helpers.test.UniAssertSubscriber
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -17,8 +19,13 @@ class FactAccessStatisticServiceImplTest {
     @Test
     fun increment() {
         val factId = "1"
-        factAccessStatisticService.increment(factId)
-        factAccessStatisticService.increment(factId)
+        val subscriber1 = factAccessStatisticService.increment(factId).subscribe()
+            .withSubscriber(UniAssertSubscriber.create())
+        val subscriber2 = factAccessStatisticService.increment(factId).subscribe()
+            .withSubscriber(UniAssertSubscriber.create())
+
+        subscriber1.assertCompleted().assertItem(Unit)
+        subscriber2.assertCompleted().assertItem(Unit)
 
         assertEquals(1, store.size)
         assertEquals(2, store[factId])
@@ -26,17 +33,13 @@ class FactAccessStatisticServiceImplTest {
 
     @Test
     fun getAllStatistics() {
-        val factId1 = "1"
-        val factId2 = "2"
-        store[factId1] = 2
-        store[factId2] = 1
+        val expected = listOf(FactStatisticDto("1", 2), FactStatisticDto("2", 1))
+        expected.forEach {
+            store[it.id] = it.accessCount
+        }
 
-        val allStatistics = factAccessStatisticService.getAllStatistics().await().indefinitely()
+        val subscriber = factAccessStatisticService.getAllStatistics().subscribe().withSubscriber(UniAssertSubscriber.create())
 
-        assertEquals(2, allStatistics.size)
-        assertEquals(factId1, allStatistics[0].id)
-        assertEquals(2, allStatistics[0].accessCount)
-        assertEquals(factId2, allStatistics[1].id)
-        assertEquals(1, allStatistics[1].accessCount)
+        subscriber.assertCompleted().assertItem(expected)
     }
 }

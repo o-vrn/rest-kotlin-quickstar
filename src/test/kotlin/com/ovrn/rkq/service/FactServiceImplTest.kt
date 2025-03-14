@@ -6,11 +6,10 @@ import com.ovrn.rkq.restclient.UselessFactClient
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.smallrye.mutiny.Uni
+import io.smallrye.mutiny.helpers.test.UniAssertSubscriber
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class FactServiceImplTest {
     @MockK
@@ -31,23 +30,22 @@ class FactServiceImplTest {
             id = "1",
             text = "Some useless fact",
             source = "Generated",
-            sourceUrl = "http://source.url",
+            sourceUrl = "https://source.url",
             language = "en",
-            permalink = "http://some.url"
+            permalink = "https://some.url"
         )
+        val expected = Fact(uselessFact.id, uselessFact.text, uselessFact.permalink)
 
         every { uselessFactClient.getRandomFact() } returns uselessFact
             .let { Uni.createFrom().item(it) }
 
-        val result = factService.getRandomFact().await().indefinitely()
+        val subscriber = factService.getRandomFact().subscribe().withSubscriber(UniAssertSubscriber.create())
 
-        assertNotNull(result)
-        assertEquals(uselessFact.text, result!!.text)
-        assertEquals(uselessFact.id, result.id)
-        assertEquals(uselessFact.permalink, result.permalink)
+        subscriber.assertCompleted()
+            .assertItem(expected)
 
         assertEquals(1, cache.size)
-        assertEquals(cache[result.id], result)
+        assertEquals(cache[uselessFact.id], expected)
     }
 
     @Test
@@ -56,9 +54,9 @@ class FactServiceImplTest {
             id = "1",
             text = "Some useless fact",
             source = "Generated",
-            sourceUrl = "http://source.url",
+            sourceUrl = "https://source.url",
             language = "en",
-            permalink = "http://some.url"
+            permalink = "https://some.url"
         )
         val cachedFact = Fact(
             id = uselessFact.id,
@@ -70,67 +68,64 @@ class FactServiceImplTest {
         every { uselessFactClient.getRandomFact() } returns uselessFact
             .let { Uni.createFrom().item(it) }
 
-        val result = factService.getRandomFact().await().indefinitely()
+        val subscriber = factService.getRandomFact().subscribe().withSubscriber(UniAssertSubscriber.create())
 
-        assertNotNull(result)
-        assertEquals(uselessFact.text, result!!.text)
-        assertEquals(uselessFact.id, result.id)
-        assertEquals(uselessFact.permalink, result.permalink)
+        subscriber.assertCompleted()
+            .assertItem(cachedFact)
 
         assertEquals(1, cache.size)
-        assertEquals(cache[result.id], cachedFact)
+        assertEquals(cache[cachedFact.id], cachedFact)
     }
 
     @Test
     fun getRandomFactOnEmpty() {
         every { uselessFactClient.getRandomFact() } answers { Uni.createFrom().nullItem() }
 
-        val exception = assertThrows<RuntimeException> { factService.getRandomFact().await().indefinitely() }
-        assertEquals(exception.message, "Useless Fact Client returned an empty response")
+        factService.getRandomFact().subscribe().withSubscriber(UniAssertSubscriber.create())
+            .assertFailedWith(RuntimeException::class.java, "Useless Fact Client returned an empty response")
     }
 
     @Test
     fun getRandomFactOnClientError() {
         every { uselessFactClient.getRandomFact() } answers { Uni.createFrom().failure(RuntimeException("Some error")) }
 
-        val exception = assertThrows<RuntimeException> { factService.getRandomFact().await().indefinitely() }
-        assertEquals(exception.message, "Failed to retrieve response from Useless Fact Client")
+        factService.getRandomFact().subscribe().withSubscriber(UniAssertSubscriber.create())
+            .assertFailedWith(RuntimeException::class.java, "Failed to retrieve response from Useless Fact Client")
     }
 
     @Test
     fun getFact() {
-        val fact = Fact(
+        val cachedFact = Fact(
             id = "1",
             text = "Some fact text",
-            permalink = "http://some.url"
+            permalink = "https://some.url"
         )
-        cache[fact.id] = fact
-        val result = factService.getFact(fact.id).await().indefinitely()
+        cache[cachedFact.id] = cachedFact
 
-        assertNotNull(result)
-        assertEquals(result!!.text, fact.text)
-        assertEquals(result.id, fact.id)
-        assertEquals(result.permalink, fact.permalink)
+        val subscriber = factService.getFact(cachedFact.id).subscribe().withSubscriber(UniAssertSubscriber.create())
+
+        subscriber.assertCompleted()
+            .assertItem(cachedFact)
     }
 
     @Test
     fun getAll() {
-        val fact1 = Fact(
+        val cachedFact1 = Fact(
             id = "1",
             text = "Some fact text",
-            permalink = "http://some.url"
+            permalink = "https://some.url"
         )
-        val fact2 = Fact(
+        val cachedFact2 = Fact(
             id = "2",
             text = "Some other fact text",
-            permalink = "http://some.other.url"
+            permalink = "https://some.other.url"
         )
-        cache[fact1.id] = fact1
-        cache[fact2.id] = fact2
-        val result = factService.getAll().await().indefinitely()
+        val expected = listOf(cachedFact1, cachedFact2)
+        expected.forEach { cache[it.id] = it }
 
-        assertEquals(result.size, 2)
-        assertEquals(result[0], fact1)
-        assertEquals(result[1], fact2)
+        val subscriber = factService.getAll().subscribe().withSubscriber(UniAssertSubscriber.create())
+
+        subscriber.assertCompleted()
+            .assertItem(expected)
     }
 }

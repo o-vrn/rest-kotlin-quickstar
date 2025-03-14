@@ -21,7 +21,7 @@ class FactsResourceImplTest {
         val fact = Fact(
             id = "1",
             text = "Fact from Quarkus REST",
-            permalink = "http://example.com/permalink"
+            permalink = "https://example.com/permalink"
         )
 
         every { factService.getRandomFact() } returns fact
@@ -54,7 +54,7 @@ class FactsResourceImplTest {
         val fact = Fact(
             id = "1",
             text = "Fact from Quarkus REST",
-            permalink = "http://example.com/permalink"
+            permalink = "https://example.com/permalink"
         )
         val factId = fact.id
         every { factService.getFact(factId) } returns fact
@@ -85,12 +85,12 @@ class FactsResourceImplTest {
         val fact1 = Fact(
             id = "1",
             text = "Fact from Quarkus REST",
-            permalink = "http://example.com/permalink"
+            permalink = "https://example.com/permalink"
         )
         val fact2 = Fact(
             id = "2",
             text = "Another fact from Quarkus REST",
-            permalink = "http://example.com/permalink2"
+            permalink = "https://example.com/permalink2"
         )
         val facts = listOf(fact1, fact2)
 
@@ -125,7 +125,7 @@ class FactsResourceImplTest {
         val fact = Fact(
             id = "1",
             text = "Fact from Quarkus REST",
-            permalink = "http://example.com/permalink"
+            permalink = "https://example.com/permalink"
         )
 
         val factId = fact.id

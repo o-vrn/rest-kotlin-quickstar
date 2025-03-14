@@ -6,12 +6,13 @@ import com.ovrn.rkq.resource.FactsResource
 import com.ovrn.rkq.service.FactAccessStatisticService
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.verify
 import io.smallrye.mutiny.Uni
+import io.smallrye.mutiny.helpers.test.UniAssertSubscriber
 import org.jboss.resteasy.reactive.RestResponse
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.BeforeEach
+import java.net.URI
 
 class FactResourceDecoratorTest {
     @MockK
@@ -20,56 +21,57 @@ class FactResourceDecoratorTest {
     @MockK
     private lateinit var factAccessStatisticService: FactAccessStatisticService
 
-    private lateinit var facdecorator: FactResourceDecorator
+    private lateinit var factResourceDecorator: FactResourceDecorator
 
     @BeforeEach
     fun init() {
-        facdecorator = FactResourceDecorator(factsResource, factAccessStatisticService)
+        factResourceDecorator = FactResourceDecorator(factsResource, factAccessStatisticService)
     }
 
     @Test
     fun getRandomFact() {
-        every { factsResource.getRandomFact() } returns FactDto("Some text", "1")
+        val expected = FactDto("Some text", "1")
+        every { factsResource.getRandomFact() } returns expected
             .let { Uni.createFrom().item(it) }
 
-        facdecorator.getRandomFact()
-
-        verify(exactly = 1) { factsResource.getRandomFact() }
+        val assertSubscriber = factResourceDecorator.getRandomFact().subscribe().withSubscriber(UniAssertSubscriber.create())
+        assertSubscriber.assertCompleted().assertItem(expected)
     }
 
     @Test
     fun getFact() {
         val factId = "1"
-        every { factsResource.getFact(factId) } returns FactViewDto("Some text", "http://example.com/permalink")
+        val expected = FactViewDto("Some text", "https://example.com/permalink")
+        every { factsResource.getFact(factId) } returns expected
             .let { Uni.createFrom().item(it) }
-        every { factAccessStatisticService.increment(factId) } returns Unit
+        every { factAccessStatisticService.increment(factId) } answers { Uni.createFrom().item(Unit) }
 
-        facdecorator.getFact(factId)
+        val assertSubscriber = factResourceDecorator.getFact(factId).subscribe().withSubscriber(UniAssertSubscriber.create())
 
-        verify(exactly = 1) { factsResource.getFact(factId) }
-        verify(exactly = 1) { factAccessStatisticService.increment(factId) }
+        assertSubscriber.assertCompleted().assertItem(expected)
     }
 
     @Test
     fun getAll() {
-        every { factsResource.getAll() } returns FactViewDto("Some text", "http://example.com/permalink")
-            .let { Uni.createFrom().item(listOf(it)) }
+        val expected = listOf(FactViewDto("Some text", "https://example.com/permalink"))
+        every { factsResource.getAll() } returns expected
+            .let { Uni.createFrom().item(it) }
 
-        facdecorator.getAll()
+        val assertSubscriber = factResourceDecorator.getAll().subscribe().withSubscriber(UniAssertSubscriber.create())
 
-        verify(exactly = 1) { factsResource.getAll() }
+        assertSubscriber.assertCompleted().assertItem(expected)
     }
 
     @Test
     fun getFactOriginalLink() {
         val factId = "1"
-        every { factsResource.getFactOriginalLink(factId) } returns RestResponse.ok<Any>()
+        val expected = RestResponse.seeOther<Any>(URI("https://example.com/permalink"))
+        every { factsResource.getFactOriginalLink(factId) } returns expected
             .let { Uni.createFrom().item(it) }
-        every { factAccessStatisticService.increment(factId) } returns Unit
+        every { factAccessStatisticService.increment(factId) } answers { Uni.createFrom().item(Unit) }
 
-        facdecorator.getFactOriginalLink(factId)
+        val assertSubscriber = factResourceDecorator.getFactOriginalLink(factId).subscribe().withSubscriber(UniAssertSubscriber.create())
 
-        verify(exactly = 1) { factsResource.getFactOriginalLink(factId) }
-        verify(exactly = 1) { factAccessStatisticService.increment(factId) }
+        assertSubscriber.assertCompleted().assertItem(expected)
     }
 }
