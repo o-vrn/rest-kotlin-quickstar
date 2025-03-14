@@ -3,6 +3,7 @@ package com.ovrn.rkq.service
 import com.ovrn.rkq.model.Fact
 import com.ovrn.rkq.model.UselessFactDto
 import com.ovrn.rkq.restclient.UselessFactClient
+import com.ovrn.rkq.util.UrlShortener
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.smallrye.mutiny.Uni
@@ -34,7 +35,7 @@ class FactServiceImplTest {
             language = "en",
             permalink = "https://some.url"
         )
-        val expected = Fact(uselessFact.id, uselessFact.text, uselessFact.permalink)
+        val expected = Fact(UrlShortener.compress(uselessFact.id), uselessFact.text, uselessFact.permalink)
 
         every { uselessFactClient.getRandomFact() } returns uselessFact
             .let { Uni.createFrom().item(it) }
@@ -45,7 +46,7 @@ class FactServiceImplTest {
             .assertItem(expected)
 
         assertEquals(1, cache.size)
-        assertEquals(cache[uselessFact.id], expected)
+        assertEquals(cache[expected.id], expected)
     }
 
     @Test
@@ -59,7 +60,7 @@ class FactServiceImplTest {
             permalink = "https://some.url"
         )
         val cachedFact = Fact(
-            id = uselessFact.id,
+            id = UrlShortener.compress(uselessFact.id),
             text = uselessFact.text,
             permalink = uselessFact.permalink
         )

@@ -2,6 +2,7 @@ package com.ovrn.rkq.service
 
 import com.ovrn.rkq.model.Fact
 import com.ovrn.rkq.restclient.UselessFactClient
+import com.ovrn.rkq.util.UrlShortener
 import io.quarkus.logging.Log
 import io.smallrye.mutiny.Uni
 import jakarta.enterprise.context.ApplicationScoped
@@ -29,9 +30,10 @@ class FactServiceImpl(
             })
             .onItem()
             .transform {
-                cache.compute(it!!.id) { _, existingFact ->
+                val idCompressed = UrlShortener.compress(it!!.id)
+                cache.compute(idCompressed) { _, existingFact ->
                     if (existingFact != null) return@compute existingFact
-                    Fact(it.id, it.text, it.permalink)
+                    Fact(idCompressed, it.text, it.permalink)
                 }
             }
     }
