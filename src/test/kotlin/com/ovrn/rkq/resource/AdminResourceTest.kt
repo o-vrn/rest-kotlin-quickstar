@@ -17,7 +17,7 @@ class AdminResourceTest {
     private lateinit var factAccessStatisticService: FactAccessStatisticService
 
     @Test
-    fun getStatisticsEndpoint() {
+    fun testGetStatisticsEndpoint() {
         val fact1 = FactStatisticDto("1", 11)
         val fact2 = FactStatisticDto("2", 12)
 
@@ -38,7 +38,7 @@ class AdminResourceTest {
     }
 
     @Test
-    fun getStatisticsEmptyEndpoint() {
+    fun `Test getStatistics endpoint with empty data`() {
         every { factAccessStatisticService.getAllStatistics() } returns listOf<FactStatisticDto>()
             .let { Uni.createFrom().item(it) }
 

@@ -25,7 +25,7 @@ class FactServiceImplTest {
     }
 
     @Test
-    fun getRandomFact() {
+    fun testGetRandomFact() {
         val uselessFact = UselessFactDto(
             id = "1",
             text = "Some useless fact",
@@ -49,7 +49,7 @@ class FactServiceImplTest {
     }
 
     @Test
-    fun getRandomFactExistingInCache() {
+    fun `Test getRandomFact already existing in the cache`() {
         val uselessFact = UselessFactDto(
             id = "1",
             text = "Some useless fact",
@@ -78,7 +78,7 @@ class FactServiceImplTest {
     }
 
     @Test
-    fun getRandomFactOnEmpty() {
+    fun `Test getRandomFact on empty response from the UselessFactClient`() {
         every { uselessFactClient.getRandomFact() } answers { Uni.createFrom().nullItem() }
 
         factService.getRandomFact().subscribe().withSubscriber(UniAssertSubscriber.create())
@@ -86,7 +86,7 @@ class FactServiceImplTest {
     }
 
     @Test
-    fun getRandomFactOnClientError() {
+    fun `Test getRandomFact on error response from the UselessFactClient`() {
         every { uselessFactClient.getRandomFact() } answers { Uni.createFrom().failure(RuntimeException("Some error")) }
 
         factService.getRandomFact().subscribe().withSubscriber(UniAssertSubscriber.create())
@@ -94,7 +94,7 @@ class FactServiceImplTest {
     }
 
     @Test
-    fun getFact() {
+    fun testGetFact() {
         val cachedFact = Fact(
             id = "1",
             text = "Some fact text",
@@ -109,7 +109,7 @@ class FactServiceImplTest {
     }
 
     @Test
-    fun getAll() {
+    fun testGetAll() {
         val cachedFact1 = Fact(
             id = "1",
             text = "Some fact text",

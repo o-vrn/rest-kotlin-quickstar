@@ -17,7 +17,7 @@ class FactsResourceImplTest {
     private lateinit var factService: FactService
 
     @Test
-    fun testGetRandomFactEndpoint() {
+    fun `Test getRandomFact endpoint`() {
         val fact = Fact(
             id = "1",
             text = "Fact from Quarkus REST",
@@ -38,7 +38,7 @@ class FactsResourceImplTest {
     }
 
     @Test
-    fun testGetRandomFactOnErrorEndpoint() {
+    fun `Test getRandomFact endpoint on error from FactService`() {
         val errorMessage = "Some error"
         every { factService.getRandomFact() } returns RuntimeException(errorMessage)
             .let { Uni.createFrom().failure(it) }
@@ -50,7 +50,7 @@ class FactsResourceImplTest {
     }
 
     @Test
-    fun testGetFactEndpoint() {
+    fun `Test getFact endpoint`() {
         val fact = Fact(
             id = "1",
             text = "Fact from Quarkus REST",
@@ -70,7 +70,7 @@ class FactsResourceImplTest {
     }
 
     @Test
-    fun testGetFactEmptyEndpoint() {
+    fun `Test getFact endpoint on no fact found`() {
         val factId = "1"
         every { factService.getFact(factId) } answers { Uni.createFrom().nullItem() }
 
@@ -81,7 +81,7 @@ class FactsResourceImplTest {
     }
 
     @Test
-    fun testGetAllFactsEndpoint() {
+    fun `Test getAll endpoint`() {
         val fact1 = Fact(
             id = "1",
             text = "Fact from Quarkus REST",
@@ -110,7 +110,7 @@ class FactsResourceImplTest {
     }
 
     @Test
-    fun testGetAllFactsEmptyEndpoint() {
+    fun `Test getAll endpoint on no fact in the list`() {
         every { factService.getAll() } returns listOf<Fact>()
             .let { Uni.createFrom().item(it) }
 
@@ -121,7 +121,7 @@ class FactsResourceImplTest {
     }
 
     @Test
-    fun testFactRedirectionEndpoint() {
+    fun `Test getFactOriginalLink endpoint`() {
         val fact = Fact(
             id = "1",
             text = "Fact from Quarkus REST",
@@ -140,7 +140,7 @@ class FactsResourceImplTest {
     }
 
     @Test
-    fun testGetFactRedirectionEmptyEndpoint() {
+    fun `Test getFactOriginalLink endpoint on no fact found`() {
         val factId = "1"
         every { factService.getFact(factId) } answers { Uni.createFrom().nullItem() }
 

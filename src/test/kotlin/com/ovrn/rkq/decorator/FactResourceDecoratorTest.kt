@@ -29,7 +29,7 @@ class FactResourceDecoratorTest {
     }
 
     @Test
-    fun getRandomFact() {
+    fun testGetRandomFact() {
         val expected = FactDto("Some text", "1")
         every { factsResource.getRandomFact() } returns expected
             .let { Uni.createFrom().item(it) }
@@ -39,7 +39,7 @@ class FactResourceDecoratorTest {
     }
 
     @Test
-    fun getFact() {
+    fun testGetFact() {
         val factId = "1"
         val expected = FactViewDto("Some text", "https://example.com/permalink")
         every { factsResource.getFact(factId) } returns expected
@@ -52,7 +52,7 @@ class FactResourceDecoratorTest {
     }
 
     @Test
-    fun getAll() {
+    fun testGetAll() {
         val expected = listOf(FactViewDto("Some text", "https://example.com/permalink"))
         every { factsResource.getAll() } returns expected
             .let { Uni.createFrom().item(it) }
@@ -63,7 +63,7 @@ class FactResourceDecoratorTest {
     }
 
     @Test
-    fun getFactOriginalLink() {
+    fun testGetFactOriginalLink() {
         val factId = "1"
         val expected = RestResponse.seeOther<Any>(URI("https://example.com/permalink"))
         every { factsResource.getFactOriginalLink(factId) } returns expected

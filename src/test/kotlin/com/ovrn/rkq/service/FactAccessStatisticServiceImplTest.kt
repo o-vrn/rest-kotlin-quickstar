@@ -17,7 +17,7 @@ class FactAccessStatisticServiceImplTest {
     }
 
     @Test
-    fun increment() {
+    fun testIncrement() {
         val factId = "1"
         val subscriber1 = factAccessStatisticService.increment(factId).subscribe()
             .withSubscriber(UniAssertSubscriber.create())
@@ -32,7 +32,7 @@ class FactAccessStatisticServiceImplTest {
     }
 
     @Test
-    fun getAllStatistics() {
+    fun testGetAllStatistics() {
         val expected = listOf(FactStatisticDto("1", 2), FactStatisticDto("2", 1))
         expected.forEach {
             store[it.id] = it.accessCount
