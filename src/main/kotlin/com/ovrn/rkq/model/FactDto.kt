@@ -6,5 +6,5 @@ data class FactDto(
     @JsonProperty("original_fact")
     val text: String,
     @JsonProperty("shortened_url")
-    val id: String
+    val shortenedUrl: String
 )
