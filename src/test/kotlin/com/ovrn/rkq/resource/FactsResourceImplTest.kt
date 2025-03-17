@@ -19,7 +19,7 @@ class FactsResourceImplTest {
     @Test
     fun `Test getRandomFact endpoint`() {
         val fact = Fact(
-            id = "1",
+            shortenUrl = "1",
             text = "Fact from Quarkus REST",
             permalink = "https://example.com/permalink"
         )
@@ -27,7 +27,7 @@ class FactsResourceImplTest {
         every { factService.getRandomFact() } returns fact
             .let { Uni.createFrom().item(it) }
 
-        val factId = fact.id
+        val factId = fact.shortenUrl
         given().`when`().post("/facts")
             .then()
             .statusCode(200)
@@ -52,11 +52,11 @@ class FactsResourceImplTest {
     @Test
     fun `Test getFact endpoint`() {
         val fact = Fact(
-            id = "1",
+            shortenUrl = "1",
             text = "Fact from Quarkus REST",
             permalink = "https://example.com/permalink"
         )
-        val factId = fact.id
+        val factId = fact.shortenUrl
         every { factService.getFact(factId) } returns fact
             .let { Uni.createFrom().item(it) }
 
@@ -83,12 +83,12 @@ class FactsResourceImplTest {
     @Test
     fun `Test getAll endpoint`() {
         val fact1 = Fact(
-            id = "1",
+            shortenUrl = "1",
             text = "Fact from Quarkus REST",
             permalink = "https://example.com/permalink"
         )
         val fact2 = Fact(
-            id = "2",
+            shortenUrl = "2",
             text = "Another fact from Quarkus REST",
             permalink = "https://example.com/permalink2"
         )
@@ -123,12 +123,12 @@ class FactsResourceImplTest {
     @Test
     fun `Test getFactOriginalLink endpoint`() {
         val fact = Fact(
-            id = "1",
+            shortenUrl = "1",
             text = "Fact from Quarkus REST",
             permalink = "https://example.com/permalink"
         )
 
-        val factId = fact.id
+        val factId = fact.shortenUrl
         every { factService.getFact(factId) } returns fact
             .let { Uni.createFrom().item(it) }
 

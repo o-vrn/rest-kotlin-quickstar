@@ -46,7 +46,7 @@ class FactServiceImplTest {
             .assertItem(expected)
 
         assertEquals(1, cache.size)
-        assertEquals(cache[expected.id], expected)
+        assertEquals(cache[expected.shortenUrl], expected)
     }
 
     @Test
@@ -60,11 +60,11 @@ class FactServiceImplTest {
             permalink = "https://some.url"
         )
         val cachedFact = Fact(
-            id = UrlShortener.compress(uselessFact.id),
+            shortenUrl = UrlShortener.compress(uselessFact.id),
             text = uselessFact.text,
             permalink = uselessFact.permalink
         )
-        cache[cachedFact.id] = cachedFact
+        cache[cachedFact.shortenUrl] = cachedFact
 
         every { uselessFactClient.getRandomFact() } returns uselessFact
             .let { Uni.createFrom().item(it) }
@@ -75,7 +75,7 @@ class FactServiceImplTest {
             .assertItem(cachedFact)
 
         assertEquals(1, cache.size)
-        assertEquals(cache[cachedFact.id], cachedFact)
+        assertEquals(cache[cachedFact.shortenUrl], cachedFact)
     }
 
     @Test
@@ -97,13 +97,13 @@ class FactServiceImplTest {
     @Test
     fun testGetFact() {
         val cachedFact = Fact(
-            id = "1",
+            shortenUrl = "1",
             text = "Some fact text",
             permalink = "https://some.url"
         )
-        cache[cachedFact.id] = cachedFact
+        cache[cachedFact.shortenUrl] = cachedFact
 
-        val subscriber = factService.getFact(cachedFact.id).subscribe().withSubscriber(UniAssertSubscriber.create())
+        val subscriber = factService.getFact(cachedFact.shortenUrl).subscribe().withSubscriber(UniAssertSubscriber.create())
 
         subscriber.assertCompleted()
             .assertItem(cachedFact)
@@ -112,17 +112,17 @@ class FactServiceImplTest {
     @Test
     fun testGetAll() {
         val cachedFact1 = Fact(
-            id = "1",
+            shortenUrl = "1",
             text = "Some fact text",
             permalink = "https://some.url"
         )
         val cachedFact2 = Fact(
-            id = "2",
+            shortenUrl = "2",
             text = "Some other fact text",
             permalink = "https://some.other.url"
         )
         val expected = listOf(cachedFact1, cachedFact2)
-        expected.forEach { cache[it.id] = it }
+        expected.forEach { cache[it.shortenUrl] = it }
 
         val subscriber = factService.getAll().subscribe().withSubscriber(UniAssertSubscriber.create())
 

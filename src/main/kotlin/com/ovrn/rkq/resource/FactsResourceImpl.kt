@@ -16,7 +16,7 @@ class FactsResourceImpl(private val factService: FactService) : FactsResource {
     override fun getRandomFact(): Uni<FactDto> {
         return factService.getRandomFact()
             .onFailure().transform { WebException.internal(it.message, it) }
-            .onItem().transform { FactDto(it.text, it.id) }
+            .onItem().transform { FactDto(it.text, it.shortenUrl) }
     }
 
     override fun getFact(id: String): Uni<FactViewDto?> {
